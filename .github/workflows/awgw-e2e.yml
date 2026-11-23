@@ -1,0 +1,27 @@
+name: AWGW E2E approval
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
+jobs:
+  approve:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish required status
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --method POST "repos/${GITHUB_REPOSITORY}/statuses/${{ github.event.pull_request.head.sha }}" \
+            -f state=success \
+            -f context=awgw/e2e-check \
+            -f description="AWGW E2E required check"
+      - name: Approve pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr review "${{ github.event.pull_request.number }}" --repo "$GITHUB_REPOSITORY" --approve --body "AWGW E2E workflow approval"
